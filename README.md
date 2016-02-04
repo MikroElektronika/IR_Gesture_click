@@ -1,5 +1,5 @@
 > ![MikroE](http://www.mikroe.com/img/designs/beta/logo_small.png)
-> #IR Gesture Click#
+> #[IR Gesture Click](http://www.mikroe.com/click/ir-gesture/)
 > ##By [MikroElektronika](http://www.mikroe.com)
 ---
 
