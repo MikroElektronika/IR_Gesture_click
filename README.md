@@ -1,191 +1,129 @@
-> ![MikroE](http://www.mikroe.com/img/designs/beta/logo_small.png)
-> #[IR Gesture Click](http://www.mikroe.com/click/ir-gesture/)
-> ##By [MikroElektronika](http://www.mikroe.com)
+![MikroE](http://www.mikroe.com/img/designs/beta/logo_small.png)
+
 ---
 
-## Installation
-[Package manager](http://www.mikroe.com/package-manager/) required to install the package to your IDE.  
+# IR_Gesture Click
 
-###Example
+- **CIC Prefix**  : IRGESTURE
+- **Author**      : Nenad Filipovic
+- **Verison**     : 1.0.0
+- **Date**        : Aug 2018.
+
+---
+
+### Software Support
+
+We provide a library for the IR_Gesture Click on our [LibStock](https://libstock.mikroe.com/projects/view/1703/ir-gesture-click) 
+page, as well as a demo application (example), developed using MikroElektronika 
+[compilers](http://shop.mikroe.com/compilers). The demo can run on all the main 
+MikroElektronika [development boards](http://shop.mikroe.com/development-boards).
+
+**Library Description**
+
+The library covers all the necessary functions to control IR Gesture Click board.
+IR_Gesture click communicates with the target board via I2C protocol. 
+This library contains drivers for write to and read data from APDS-9960 IC sensor,
+set default configuration, enable/disable gesture/ambient light/proximity sensor,
+set configuration, read proximity, read ambient light data, 
+read red, green or blue color data, detectin gesture, etc. 
+
+Key functions :
+
+- ``` void irgesture_defaultConfiguration()``` -Default configuration function
+- ``` void irgesture_enableGestureSensor() ``` - Starts the gesture recognition engine function
+- ``` uint8_t irgesture_detectGesture() ``` - Function decode a gesture event function
+
+**Examples Description**
+
+The application is composed of three sections :
+
+- System Initialization - Initializes GPIO, I2C and LOG structures, set INT pin as input.
+- Application Initialization - Initialization driver enable's - I2C,
+     set default configuration, enable geasture sensor and start write log.
+- Application Task - (code snippet) This is a example which demonstrates the use of IR Gesture Click board.
+     IR Gesture Click communicates with register via I2C by write to register and read from register,
+     dececting gesture and write log.
+     Results are being sent to the Usart Terminal where you can track their changes.
+     All data logs write on usb uart changes for every 1 sec.
+
+
+```.c
+
+void applicationTask()
+{
+    position = irgesture_detectGesture();
+
+    if ( positionOld != position )
+    {
+        if ( position == _IRGESTURE_FAR )
+            mikrobus_logWrite( "       F A R        ", _LOG_LINE );
+
+        if ( position == _IRGESTURE_RIGHT )
+            mikrobus_logWrite( "     R I G H T      ", _LOG_LINE );
+
+        if ( position == _IRGESTURE_LEFT )
+            mikrobus_logWrite( "      L E F T       ", _LOG_LINE );
+
+        if ( position == _IRGESTURE_UP )
+            mikrobus_logWrite( "        U P         ", _LOG_LINE );
+
+        if ( position == _IRGESTURE_DOWN )
+            mikrobus_logWrite( "      D O W N       ", _LOG_LINE );
+
+        if ( position == _IRGESTURE_NEAR )
+            mikrobus_logWrite( "      N E A R       ", _LOG_LINE );
+
+        positionOld = position;
+
+        mikrobus_logWrite( "--------------------", _LOG_LINE );
+
+        Delay_1sec();
+    }
+}
+
 ```
-/*******************************************************************************
-* Title                 :   IR Gesture Example
-* Filename              :   MikroC_ARM_M3.c
-* Author                :   RBL
-* Origin Date           :   15/01/2016
-* Notes                 :   None
-*******************************************************************************/
-/*************** MODULE REVISION LOG ******************************************
-*
-*    Date    Software Version    Initials   Description
-*  15/01/16           .1         RBL        Module Created.
-*
-*******************************************************************************/
-/** 
- * @file MikroC_ARM_M3.c.c
- * @brief This module contains the
- */
-/******************************************************************************
-* Includes
-*******************************************************************************/
-#include <stdbool.h>
-#include "ir_gesture_hw.h"
-#include "resources.h"
-#include "gesture.h"
 
-/******************************************************************************
-* Module Preprocessor Constants
-*******************************************************************************/
-#define PROX_INT_HIGH   50 // Proximity level for interrupt
-#define PROX_INT_LOW    0  // No far interrupt
 
-/******************************************************************************
-* Module Preprocessor Macros
-*******************************************************************************/
+The full application code, and ready to use projects can be found on our 
+[LibStock](https://libstock.mikroe.com/projects/view/1703/ir-gesture-click) page.
 
-/******************************************************************************
-* Module Typedefs
-*******************************************************************************/
+Other mikroE Libraries used in the example:
 
-/******************************************************************************
-* Module Variable Definitions
-*******************************************************************************/
-static volatile bool isr_flag;
+- I2C
+- UART
 
-unsigned int TFT_DataPort at GPIOE_ODR;
-sbit TFT_RST at GPIOE_ODR.B8;
-sbit TFT_RS at GPIOE_ODR.B12;
-sbit TFT_CS at GPIOE_ODR.B15;
-sbit TFT_RD at GPIOE_ODR.B10;
-sbit TFT_WR at GPIOE_ODR.B11;
-sbit TFT_BLED at GPIOE_ODR.B9;
 
-sbit APDS9960_INT at GPIOD_IDR.B10;
-#if defined( DEBUG )
-sbit Mmc_Chip_Select at GPIOD_ODR.B3;
-#endif
-/******************************************************************************
-* Function Prototypes
-*******************************************************************************/
-/**
- * @brief Initialize Display
- */
-static void display_init( void );
+**Additional notes and informations**
 
-/**
- * @brief Process Incoming Gesture
- */
-static void process_gesture( void );
+Depending on the development board you are using, you may need 
+[USB UART click](http://shop.mikroe.com/usb-uart-click), 
+[USB UART 2 Click](http://shop.mikroe.com/usb-uart-2-click) or 
+[RS232 Click](http://shop.mikroe.com/rs232-click) to connect to your PC, for 
+development systems with no UART to USB interface available on the board. The 
+terminal available in all Mikroelektronika 
+[compilers](http://shop.mikroe.com/compilers), or any other terminal application 
+of your choice, can be used to read the message.
 
-/**
- * @brief Initialize System Peripherials
- */
-static int system_init( void );
+---
+### Architectures Supported
 
-/******************************************************************************
-* Function Definitions
-*******************************************************************************/
-static void display_init()
-{
-    TFT_Init_ILI9341_8bit( 320, 240 );
-    TFT_Set_Font( TFT_defaultFont, CL_WHITE, FO_HORIZONTAL );
-    TFT_Fill_Screen( CL_WHITE );
-    TFT_Set_Brush(1, CL_WHITE , 0, 0, 0, 0);
-    TFT_Set_Pen( CL_BLUE, 1 );
-    TFT_Line( 20, 220, 300, 220 );
-    TFT_LIne( 20,  40, 300,  40 );
-    TFT_Set_Pen( CL_WHITE, 1 );
-    TFT_Set_Font( &HandelGothic_BT21x22_Regular, CL_BLUE, FO_HORIZONTAL );
-    TFT_Write_Text( "IR Gesture click", 90, 10 );
-    TFT_Set_Font( &Verdana12x13_Regular, CL_BLUE, FO_HORIZONTAL );
-    TFT_Write_Text( "EasyMx PRO v7 for STM32", 19, 223 );
-    TFT_Set_Font( &Verdana12x13_Regular, CL_RED, FO_HORIZONTAL );
-    TFT_Write_Text( "www.mikroe.com", 200, 223 );
-    TFT_Set_Font( &TFT_defaultFont, CL_RED, FO_HORIZONTAL );
-    TFT_Rectangle( 80, 60, 300, 200 );
-    TFT_Write_Text( "Please wait...", 100, 110 );
-}
+#### mikroC
 
-static void process_gesture()
-{
-    if ( ir_gesture_available() )
-    {
-        TFT_Set_Font( &TFT_defaultFont, CL_RED, FO_HORIZONTAL );
-        TFT_Rectangle( 80, 60, 300, 180 );
-        switch ( ir_gesture_read_gesture() )
-        {
-          case DIR_UP:
-            TFT_Image(110,80, touch_up_bmp, 1);
-            break;
-          case DIR_DOWN:
-            TFT_Image(110,80, touch_down_bmp, 1);
-            break;
-          case DIR_LEFT:
-            TFT_Image(110,80, touch_left_bmp, 1);
-            break;
-          case DIR_RIGHT:
-            TFT_Image(110,80, touch_right_bmp, 1);
-            break;
-          case DIR_NEAR:
-            TFT_Write_Text("NEAR", 100, 110 );
-            break;
-          case DIR_FAR:
-            TFT_Write_Text("FAR", 100, 110 );
-            break;
-          default:
-            TFT_Write_Text("NONE", 100, 110 );
-        }
-    }
-}
+| STM | KIN | CEC | MSP | TIVA | PIC | PIC32 | DSPIC | AVR | FT90x |
+|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| x | x | x | x | x | x | x | x | x | x |
 
-static int system_init()
-{
-    DisableInterrupts();
-    // Set interrupt pin as input
-    GPIO_Digital_Input( &GPIOD_BASE, _GPIO_PINMASK_10 );
-    RCC_APB2ENR.AFIOEN = 1;   // Enable clock for alternate pin functions
-    AFIO_EXTICR3 = 0x0300;
-    EXTI_FTSR |= ( 1 << TR10 );      // Set interrupt on Rising edge
-    EXTI_IMR |= ( 1 << MR10 );       // Set mask
-    NVIC_IntEnable( IVT_INT_EXTI15_10 );// Enable External interrupt
-    
-    I2C1_Init_Advanced( 400000, &_GPIO_MODULE_I2C1_PB67 );
-    delay_ms( 100 );
-    
-    // Initialize APDS-9960 (configure I2C and initial values)
-    ir_gesture_init( APDS9960_I2C_ADDR );
-    ir_gesture_enable_gesture_sensor( true );
-    
-    display_init();
+#### mikroBasic
 
-    EnableInterrupts();
-    return 0;
-}
+| STM | KIN | CEC | MSP | TIVA | PIC | PIC32 | DSPIC | AVR | FT90x |
+|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| x | x | x | x | x | x | x | x | x | x |
 
-void main()
-{
-    if( system_init() )
-        return;
+#### mikroPascal
 
-    while (1)
-    {
-        if( isr_flag )
-        {
-            DisableInterrupts();
-            process_gesture();
-            isr_flag = false;
-            EnableInterrupts();
-        }
-    }
-}
+| STM | KIN | CEC | MSP | TIVA | PIC | PIC32 | DSPIC | AVR | FT90x |
+|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| x | x | x | x | x | x | x | x | x | x |
 
-void gesture_ISR() iv IVT_INT_EXTI15_10 ics ICS_AUTO
-{
-    EXTI_PR |= ( 1 << PR10 );
-    
-    if( ir_gesture_is_interrupted( INT_GESTURE ) )
-    {
-        isr_flag = true;
-    }
-}
-```
+---
+---

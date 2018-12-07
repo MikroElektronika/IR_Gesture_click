@@ -1,0 +1,8 @@
+unit Click_IR_Gesture_config;
+
+uses Click_IR_Gesture_types;
+
+const
+    _IRGESTURE_I2C_CFG : array[1] of uint32_t = (_I2C_BITRATE_STANDARD_MODE); 
+    
+end.
